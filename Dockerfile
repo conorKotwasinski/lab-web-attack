@@ -1,9 +1,14 @@
-FROM python:3-alpine
-WORKDIR /usr/src/app
-RUN cd /usr/src/app
-ADD app /usr/src/app
-ADD requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
-ENV port=5000
-#CMD FLASK_ENV=development python -m flask run --host=0.0.0.0  --port=${port}
-CMD python -m flask run --host=0.0.0.0 --port=${port}
+FROM gcc:latest
+RUN apt-get update && apt-get install -y netcat-openbsd iptables net-tools iputils-ping
+COPY ./listener /build
+COPY firewall_test.bash /root
+COPY firewall_iptable_check.bash /root
+WORKDIR /build
+RUN make install
+WORKDIR /root
+RUN rm -rf /build
+
+EXPOSE 5555
+EXPOSE 6666
+EXPOSE 7777
+ENTRYPOINT /bin/listener
